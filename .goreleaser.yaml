@@ -1,0 +1,56 @@
+# GoReleaser configuration for eks-aws-auth-plugin
+# See https://goreleaser.com for full reference
+
+project_name: clusterprofile-credentials-plugins
+
+dist: dist
+
+release:
+  # Create GitHub Releases on tag push
+  # "auto" marks prereleases when the tag has a prerelease part (e.g. -rc, -beta)
+  prerelease: auto
+  draft: false
+
+builds:
+  - id: eks-aws-auth-plugin
+    main: ./cmd/eks-aws-auth-plugin
+    binary: eks-aws-auth-plugin
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+
+archives:
+  - id: default
+    # Use binary name for artifact base to reflect the plugin's name
+    name_template: "{{ .Binary }}-{{ .Os }}-{{ .Arch }}"
+    formats: tar.gz
+    format_overrides:
+      - goos: windows
+        formats: zip
+    files:
+      - LICENSE
+      - README.md
+      - cmd/eks-aws-auth-plugin/README.md
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  use: github
+  sort: asc
+  filters:
+    exclude:
+      - '^docs?:'
+      - '^test:'
+      - '^ci:'
+      - '^chore:'
