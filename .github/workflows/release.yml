@@ -6,12 +6,12 @@ on:
       - 'v*.*.*'
 
 jobs:
-  goreleaser:
-    name: GoReleaser
+  release:
+    name: Release
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,3 +31,69 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup ORAS
+        uses: oras-project/setup-oras@v1
+
+      - name: Login to GHCR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GH_TOKEN" | oras login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Push binaries to GHCR as OCI artifacts
+        env:
+          TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          OWNER="${{ github.repository_owner }}"
+          OWNER_LC=$(echo "$OWNER" | tr '[:upper:]' '[:lower:]')
+          TAG="${TAG:-${{ github.ref_name }}}"
+          REV="${{ github.sha }}"
+
+          for d in cmd/*; do
+            [ -d "$d" ] || continue
+            plugin="$(basename "$d")"
+
+            for binpath in "dist/${plugin}_*/${plugin}" "dist/${plugin}_*/${plugin}.exe"; do
+              for bin in $binpath; do
+                [ -f "$bin" ] || continue
+                dir="$(basename "$(dirname "$bin")")"
+                osarch="$(echo "$dir" | sed -E "s/^${plugin}_([A-Za-z0-9-]+)_([A-Za-z0-9-]+).*/\1-\2/")"
+                ref="ghcr.io/${OWNER_LC}/${plugin}:${TAG}-${osarch}"
+                fname="$(basename "$bin")"
+
+                # Package the binary into a layer tar.gz to push as an OCI image
+                tmpdir="$(mktemp -d)"
+                trap 'rm -rf "$tmpdir"' EXIT
+                (
+                  cd "$tmpdir"
+                  mkdir -p payload
+                  cp "$GITHUB_WORKSPACE/$bin" "payload/${fname}"
+                  tar -C payload -czf layer.tar.gz .
+                  # Create a minimal image config (explicit OS/ARCH)
+                  os_val="${osarch%-*}"
+                  arch_val="${osarch#*-}"
+                  # diffID is the SHA256 of the uncompressed tar
+                  diff_id=$(gzip -dc layer.tar.gz | sha256sum | cut -d' ' -f1)
+                  printf '{\n  "created": "%s",\n  "architecture": "%s",\n  "os": "%s",\n  "config": {},\n  "rootfs": {"type": "layers", "diff_ids": ["sha256:%s"]}\n}\n' \
+                    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+                    "${arch_val}" \
+                    "${os_val}" \
+                    "${diff_id}" > config.json
+                  oras push "$ref" \
+                    --config config.json:application/vnd.oci.image.config.v1+json \
+                    --annotation "org.opencontainers.image.title=${fname}" \
+                    --annotation "org.opencontainers.image.version=${TAG}" \
+                    --annotation "org.opencontainers.image.revision=${REV}" \
+                    --annotation "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
+                    --annotation "org.opencontainers.image.url=${{ github.server_url }}/${{ github.repository }}/releases/tag/${TAG}" \
+                    --annotation "org.opencontainers.image.os=${os_val}" \
+                    --annotation "org.opencontainers.image.architecture=${arch_val}" \
+                    layer.tar.gz:application/vnd.oci.image.layer.v1.tar+gzip
+                )
+              done
+            done
+          done
