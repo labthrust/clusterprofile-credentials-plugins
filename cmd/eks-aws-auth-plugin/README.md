@@ -72,7 +72,7 @@ spec:
     name: EKS-Fleet
 status:
   credentialProviders:
-    eks:
+    - name: eks:
       cluster:
         server: https://xxx.gr7.ap-northeast-1.eks.amazonaws.com
         certificate-authority-data: <BASE64-PEM>
