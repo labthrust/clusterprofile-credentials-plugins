@@ -5,17 +5,15 @@ go 1.24.4
 toolchain go1.24.6
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.38.2
-	github.com/aws/aws-sdk-go-v2/config v1.31.5
-	github.com/aws/aws-sdk-go-v2/service/eks v1.73.0
-	github.com/onsi/gomega v1.36.1
 	k8s.io/apimachinery v0.33.3
 	k8s.io/client-go v0.33.3
 	sigs.k8s.io/aws-iam-authenticator v0.7.5
-	sigs.k8s.io/cluster-inventory-api v0.0.0-20250702132726-0f613c6275a5
+	sigs.k8s.io/cluster-inventory-api v0.0.0-20251017191042-d0f63081cecb
 )
 
 require (
+	github.com/aws/aws-sdk-go-v2 v1.38.2 // indirect
+	github.com/aws/aws-sdk-go-v2/config v1.31.5 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.18.9 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.5 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.5 // indirect

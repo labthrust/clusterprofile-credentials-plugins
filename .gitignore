@@ -1,6 +1,7 @@
 # Build artifacts
 bin/
 dist/
+*.bin
 
 # OS files
 .DS_Store
@@ -31,4 +32,4 @@ dist/
 
 # Project binaries
 /eks-aws-auth-plugin
-/secretreader-plugin
+/kubeconfig-secretreader-plugin

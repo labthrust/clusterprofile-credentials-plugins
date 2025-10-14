@@ -24,9 +24,9 @@ builds:
     ldflags:
       - -s -w
 
-  - id: secretreader-plugin
-    main: ./cmd/secretreader-plugin
-    binary: secretreader-plugin
+  - id: kubeconfig-secretreader-plugin
+    main: ./cmd/kubeconfig-secretreader-plugin
+    binary: kubeconfig-secretreader-plugin
     env:
       - CGO_ENABLED=0
     goos:
@@ -55,9 +55,9 @@ archives:
       - README.md
       - cmd/eks-aws-auth-plugin/README.md
 
-  - id: secretreader-plugin-archive
+  - id: kubeconfig-secretreader-plugin-archive
     builds:
-      - secretreader-plugin
+      - kubeconfig-secretreader-plugin
     name_template: "{{ .Binary }}-{{ .Os }}-{{ .Arch }}"
     formats: tar.gz
     format_overrides:
@@ -66,7 +66,6 @@ archives:
     files:
       - LICENSE
       - README.md
-      - cmd/secretreader-plugin/README.md
 
 checksum:
   name_template: checksums.txt

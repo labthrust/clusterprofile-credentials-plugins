@@ -1,6 +1,6 @@
 # EKS AWS Auth Plugin
 
-A Credentials Provider plugin for ClusterProfile. It resolves the EKS cluster name from input (`KUBERNETES_EXEC_INFO` including `server/CA`), obtains a token, and returns **ExecCredential JSON** to standard output.
+A Credentials Provider plugin for ClusterProfile. It reads `region` and `clusterId` from the exec extensions (`KUBERNETES_EXEC_INFO` → `ExecCredential.Spec.Cluster.Config`), obtains a token, and returns **ExecCredential JSON** to standard output.
 
 For common background and exec input/output specifications, please refer to the `README.md` at the repository root.
 
@@ -8,25 +8,21 @@ For common background and exec input/output specifications, please refer to the 
 
 ## Implementation Status
 
-| Status | Feature                                     |
-| :----- | :------------------------------------------ |
-| ✅     | KEP-541 compliant |
-| ✅     | Single binary / AWS CLI independent |
-| ✅     | Region inference from endpoint       |
-| ✅     | Automatic EKS cluster name resolution from Server      |
-| ✅     | CA validation when `certificate-authority-data` is provided |
+| Status |                    Feature                     |
+| :----- | :--------------------------------------------- |
+| ✅      | KEP-541 compliant                              |
+| ✅      | Single binary / AWS CLI independent            |
+| ✅      | Reads `region` and `clusterId` from extensions |
 
 ## Supported Scenarios
 
 * **Use as a Credentials Provider plugin for ClusterProfile** (**primary use case**)
 
-  * Obtains tokens using **server/CA** from `status.credentialProviders[].cluster` as input
-  * When `certificate-authority-data` is provided, validates against EKS `describe-cluster.certificateAuthority.data`, and exits with error if no match
+  * Obtains tokens using `region` and `clusterId` that are passed via exec extensions (`client.authentication.k8s.io/exec`)
   * Controller registers this plugin in `providers[].execConfig` (e.g., `cp-creds.json`)
 * **Also usable as kubectl / kubeconfig exec plugin** (compatible)
 
   * Receives `KUBERNETES_EXEC_INFO` and returns ExecCredential JSON to standard output
-
 
 ## Build
 
@@ -59,7 +55,7 @@ Used in the KEP-5339 style, where **the controller calls the Exec plugin**.
 
 ### 2) Store cluster information in ClusterProfile
 
-Put **server/CA** in `status.credentialProviders[].cluster` (used by controller for resolution).
+Provide `region` and `clusterId` via the exec extensions. The controller library copies the `extension` object into `ExecCredential.Spec.Cluster.Config` for the plugin.
 
 ```yaml
 apiVersion: multicluster.x-k8s.io/v1alpha1
@@ -72,40 +68,41 @@ spec:
     name: EKS-Fleet
 status:
   credentialProviders:
-    eks:
-      cluster:
-        server: https://xxx.gr7.ap-northeast-1.eks.amazonaws.com
-        certificate-authority-data: <BASE64-PEM>
+  - name: eks
+    cluster:
+      # Optional, for kubeclient connectivity (not used by this plugin to mint tokens)
+      server: https://xxx.gr7.ap-northeast-1.eks.amazonaws.com
+      certificate-authority-data: <BASE64-PEM>
+      extensions:
+      - name: client.authentication.k8s.io/exec
+        extension:
+          region: ap-northeast-1
+          clusterId: my-eks-cluster
 ```
 
 ## Required IAM Policies
 
-This plugin executes the following AWS APIs:
+This plugin uses the AWS IAM Authenticator token generator which relies on STS (`GetCallerIdentity`) under the hood. No explicit EKS permissions are required by this plugin.
 
-* EKS API
-  * `eks:ListClusters`
-  * `eks:DescribeCluster`
-* STS API (uses `GetCallerIdentity` during token generation)
-  * No explicit permission required.
-
-An example minimal inline policy configuration is as follows (add region conditions or resource scope as needed):
+If you prefer to provide an explicit (optional) policy example for clarity, you can use:
 
 ```json
 {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "EksDiscover",
+      "Sid": "AllowSTSGetCallerIdentity",
       "Effect": "Allow",
       "Action": [
-        "eks:ListClusters",
-        "eks:DescribeCluster"
+        "sts:GetCallerIdentity"
       ],
       "Resource": "*"
     }
   ]
 }
 ```
+
+Note: Organizations SCPs or explicit Deny statements may still affect STS. Ensure your runtime environment can call `sts:GetCallerIdentity`.
 
 ## Architecture
 
@@ -117,16 +114,13 @@ sequenceDiagram
   participant Ctrl as Controller
   participant Prov as Credential Provider (cp-creds.json)
   participant Plugin as exec plugin<br/>(this repo)
-  participant AWS as AWS EKS API
+  participant AWS as AWS STS/EKS Auth
 
   Ctrl->>Prov: Load providers
   Ctrl->>Plugin: exec providers[].execConfig.command\nenv: KUBERNETES_EXEC_INFO
-  Note right of Plugin: Extract region from server\nEnumerate EKS → resolve clusterName by endpoint exact match
+  Note right of Plugin: Read extensions (region, clusterId)
 
-  Plugin->>AWS: (API) list-clusters / region
-  Plugin->>AWS: (API) describe-cluster / endpoint list
-  AWS-->>Plugin: endpoint list
-  Plugin->>AWS: (API) token generation
+  Plugin->>AWS: Token generation (IAM Authenticator)
   AWS-->>Plugin: ExecCredential(JSON)\nstatus.token, expirationTimestamp
 
   Plugin-->>Ctrl: Return ExecCredential(JSON) to standard output
@@ -134,8 +128,8 @@ sequenceDiagram
 
 ## Troubleshooting
 
-* `no matching EKS cluster` → Check ListClusters/DescribeCluster results, permissions, and AWS profile
-* `x509: certificate signed by unknown authority` → Verify the validity of `certificate-authority-data` (base64)
+* `missing ExecCredential.Spec.Cluster.Config (extensions)` → Ensure `client.authentication.k8s.io/exec` extension is present with `region` and `clusterId`
+* `x509: certificate signed by unknown authority` → Verify the validity of `certificate-authority-data` (base64) in the kube cluster config (if used by your client)
 * `KUBERNETES_EXEC_INFO is empty` → Check if `provideClusterInfo: true` is configured
 
 <!-- Common KEP/exec explanations and links are consolidated in the root README -->
