@@ -116,7 +116,7 @@ EOF
 STATUS_PATCH=$(cat <<EOF
 {
   "status": {
-    "credentialProviders": [
+    "accessProviders": [
       {
         "name": "kubeconfig-secretreader",
         "cluster": {

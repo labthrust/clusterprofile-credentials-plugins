@@ -194,8 +194,8 @@ k8s.io/utils v0.0.0-20241210054802-24370beab758 h1:sdbE21q2nlQtFh65saZY+rRM6x6aJ
 k8s.io/utils v0.0.0-20241210054802-24370beab758/go.mod h1:OLgZIPagt7ERELqWJFomSt595RzquPNLL48iOWgYOg0=
 sigs.k8s.io/aws-iam-authenticator v0.7.5 h1:pE/hroECuP45Bved/X1oyyPhbNQgICjOF+Bxr22bMDM=
 sigs.k8s.io/aws-iam-authenticator v0.7.5/go.mod h1:aZ3wMdA2Qr9dlRYzlWem77TEvwk4PMbzw87O0r9aOv8=
-sigs.k8s.io/cluster-inventory-api v0.0.0-20251017191042-d0f63081cecb h1:wVeEfv80hWK5l5IGYgvrLCKsTLvaTdTn8rv2fZRgaQU=
-sigs.k8s.io/cluster-inventory-api v0.0.0-20251017191042-d0f63081cecb/go.mod h1:uHmRJn/DNc0ScvENOAIagQPfXdjJfuDB7IgZxCpSLMM=
+sigs.k8s.io/cluster-inventory-api v0.0.0-20251028164203-2e3fabb46733 h1:l90ANqblqFrE4L2QLLk+9iPjfmaLRvOFL51l/fgwUgg=
+sigs.k8s.io/cluster-inventory-api v0.0.0-20251028164203-2e3fabb46733/go.mod h1:guwenlZ9iIfYlNxn7ExCfugOLTh6wjjRX3adC36YCmQ=
 sigs.k8s.io/controller-runtime v0.20.4 h1:X3c+Odnxz+iPTRobG4tp092+CvBU9UK0t/bRf+n0DGU=
 sigs.k8s.io/controller-runtime v0.20.4/go.mod h1:xg2XB0K5ShQzAgsoujxuKN4LNXR2LfwwHsPj7Iaw+XY=
 sigs.k8s.io/json v0.0.0-20241014173422-cfa47c3a1cc8 h1:gBQPwqORJ8d8/YNZWEjoZs7npUVDpVXUUOFfW6CgAqE=

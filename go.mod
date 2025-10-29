@@ -8,7 +8,7 @@ require (
 	k8s.io/apimachinery v0.33.3
 	k8s.io/client-go v0.33.3
 	sigs.k8s.io/aws-iam-authenticator v0.7.5
-	sigs.k8s.io/cluster-inventory-api v0.0.0-20251017191042-d0f63081cecb
+	sigs.k8s.io/cluster-inventory-api v0.0.0-20251028164203-2e3fabb46733
 )
 
 require (

@@ -67,7 +67,7 @@ spec:
   clusterManager:
     name: EKS-Fleet
 status:
-  credentialProviders:
+  accessProviders:
   - name: eks
     cluster:
       # Optional, for kubeclient connectivity (not used by this plugin to mint tokens)
