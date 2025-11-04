@@ -24,7 +24,7 @@ type Provider struct {
 	KubeClient kubernetes.Interface
 }
 
-func (Provider) Name() string { return "kubeconfig-secretreader" }
+func (Provider) Name() string { return "token-secretreader" }
 
 type execConfig struct {
 	SecretName      string `json:"secretName"`

@@ -1,10 +1,10 @@
 {
   "providers": [
     {
-      "name": "kubeconfig-secretreader",
+      "name": "token-secretreader",
       "execConfig": {
         "apiVersion": "client.authentication.k8s.io/v1",
-        "command": "./bin/kubeconfig-secretreader-plugin",
+        "command": "./bin/token-secretreader-plugin",
         "provideClusterInfo": true
       }
     }

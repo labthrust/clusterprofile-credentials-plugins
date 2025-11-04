@@ -32,4 +32,6 @@ dist/
 
 # Project binaries
 /eks-aws-auth-plugin
-/kubeconfig-secretreader-plugin
+/token-secretreader-plugin
+
+*.kubeconfig
