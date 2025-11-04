@@ -101,7 +101,7 @@ kubectl --context "kind-hub" create secret generic "spoke-1" \
   --from-literal=token="${TOKEN}" \
   --dry-run=client -o yaml | kubectl --context "kind-hub" apply -f -
 
-echo "[9/9] Create ClusterProfile on hub cluster and patch status with provider=kubeconfig-secretreader"
+echo "[9/9] Create ClusterProfile on hub cluster and patch status with provider=token-secretreader"
 kubectl --context "kind-hub" apply -f - <<EOF
 apiVersion: multicluster.x-k8s.io/v1alpha1
 kind: ClusterProfile
@@ -118,7 +118,7 @@ STATUS_PATCH=$(cat <<EOF
   "status": {
     "accessProviders": [
       {
-        "name": "kubeconfig-secretreader",
+        "name": "token-secretreader",
         "cluster": {
           "server": "${SERVER}",
           "certificate-authority-data": "${CADATA}",

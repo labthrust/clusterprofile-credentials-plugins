@@ -2,7 +2,7 @@
 
 This repository provides ClusterProfile Credentials Provider plugins. Currently includes the following 2 plugins:
 
-- kubeconfig-secretreader-plugin: Reads `data.token` from Kubernetes Secrets (`<namespace>/<name>`) and returns ExecCredential.
+- token-secretreader-plugin: Reads `data.token` from Kubernetes Secrets (`<namespace>/<name>`) and returns ExecCredential.
 - [`eks-aws-auth-plugin`](cmd/eks-aws-auth-plugin/README.md): Resolves EKS clusters from ClusterProfile's `server/CA`, obtains AWS tokens, and returns ExecCredential.
 
 ### Background (Common aspects of KEP and exec flow)
